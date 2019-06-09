@@ -198,6 +198,24 @@ def drawSingleLinePlot(data,filename='lineplot'):
   #mpld3.show()
   mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename + '_code.html')
 
+def drawRelativePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=False):
+  objects = data
+  y_pos = np.arange(len(objects))
+  fig = plt.figure(figsize= [16,9], dpi=250)
+  p1 = plt.bar(y_pos, height = objects)
+  p2 = plt.bar(y_pos, height = dataSumNE, bottom=objects)
+  if recolor:
+    p1[(len(p1)-1)].set_color('C3')
+    p2[(len(p2)-1)].set_color('#FFC080')
+  plt.xticks(y_pos, data)
+  plt.ylabel('Zulassungen')
+  plt.show()
+  plt.xlabel(xlab)
+  plt.legend(['Elektroautos','Andere Antriebe'])
+  plt.savefig('outputs/' + genDate() + '_' + filename + '_legend.png')
+  #mpld3.show()
+  mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename + '_code.html')
+
 def drawMultiplePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=False):
   objects = data.loc['Elektrisch',]
   y_pos = np.arange(len(objects))
