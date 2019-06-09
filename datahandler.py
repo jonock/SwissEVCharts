@@ -207,8 +207,8 @@ def drawRelativePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=Fals
   if recolor:
     p1[(len(p1)-1)].set_color('C3')
     p2[(len(p2)-1)].set_color('#FFC080')
-  plt.xticks(y_pos, data)
-  plt.ylabel('Zulassungen')
+  plt.xticks(y_pos, dataSumNE.index)
+  plt.ylabel('Anteile Gesamte Inverkehrssetzungen')
   plt.show()
   plt.xlabel(xlab)
   plt.legend(['Elektroautos','Andere Antriebe'])
