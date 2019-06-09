@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt, mpld3
 import numpy as np
 from datetime import date
 import csv
-import plotly
 import calendar
+import plotly.plotly as py
+import plotly.tools as tls
+import plotly.offline as plo
+
+
 
 def genDate():
     today = date.today()
@@ -180,9 +184,9 @@ def drawSinglePlot(data,filename='figsingle', xlab = 'Jahr',recolor=False):
   plt.ylabel('Zulassungen')
   plt.xlabel(xlab)
   plt.show()
-  plt.savefig('outputs/' + genDate() + '_' + filename + '_image.png')
+  plt.savefig('outputs/png/' + genDate() + '_' + filename + '_image.png')
   #mpld3.show()
-  mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename+'_code.html')
+  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename+'_code.html')
 
 def drawSingleLinePlot(data,filename='lineplot'):
   objects = data.loc['Elektrisch',]
@@ -194,27 +198,29 @@ def drawSingleLinePlot(data,filename='lineplot'):
 #  plt.xticks(y_pos, data)
   plt.ylabel('Zulassungen')
   plt.show()
-  plt.savefig('outputs/' + genDate() + '_' + filename + '_image.png')
+  plt.savefig('outputs/png/' + genDate() + '_' + filename + '_image.png')
   #mpld3.show()
-  mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename + '_code.html')
+  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
 
 def drawRelativePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=False):
   objects = data
   y_pos = np.arange(len(objects))
-  fig = plt.figure(figsize= [16,9], dpi=250)
+  fig = plt.figure(figsize= [16,9], dpi=72)
   p1 = plt.bar(y_pos, height = objects)
   p2 = plt.bar(y_pos, height = dataSumNE, bottom=objects)
   if recolor:
     p1[(len(p1)-1)].set_color('C3')
     p2[(len(p2)-1)].set_color('#FFC080')
-  plt.xticks(y_pos, dataSumNE.index)
+  plt.xticks(ticks=y_pos,labels=dataSumNE.index)
   plt.ylabel('Anteile Gesamte Inverkehrssetzungen')
   plt.show()
   plt.xlabel(xlab)
   plt.legend(['Elektroautos','Andere Antriebe'])
-  plt.savefig('outputs/' + genDate() + '_' + filename + '_legend.png')
+  plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
   #mpld3.show()
-  mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename + '_code.html')
+  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
+  plotly_fig = tls.mpl_to_plotly(fig)
+  plo.plot(plotly_fig, filename='outputs/plotly/' + genDate() + '_' + filename + '_code.html')
 
 def drawMultiplePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=False):
   objects = data.loc['Elektrisch',]
@@ -230,6 +236,6 @@ def drawMultiplePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=Fals
   plt.show()
   plt.xlabel(xlab)
   plt.legend(['Elektroautos','Andere Antriebe'])
-  plt.savefig('outputs/' + genDate() + '_' + filename + '_legend.png')
+  plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
   #mpld3.show()
-  mpld3.save_html(fig,'outputs/' + genDate() + '_' + filename + '_code.html')
+  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
