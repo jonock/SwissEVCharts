@@ -142,10 +142,10 @@ def modifyMonthlyData(data):
   data2019 = data.drop(columns=['2018'])
   data2019 = data2019.pivot(index='Treibstoff', columns='Monat', values='2019')
   data2018 = data2018.pivot(index='Treibstoff', columns='Monat', values='2018')
-  data2019 = data2019[['Januar', 'Februar', 'März', 'April']]
+  data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai']]
   sum2019 = data2019.sum(axis=1)
   sum2018 = data2018.sum(axis=1)
-  data2018 = data2018[['Januar', 'Februar', 'März', 'April']]
+  data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai']]
   writeCSV(sum2018, 'monthlySum2018.csv')
   writeCSV(sum2019, 'monthlySum2019.csv')
   writeCSV(data2019,'monthly2019.csv')
@@ -183,10 +183,16 @@ def drawSinglePlot(data,filename='figsingle', xlab = 'Jahr',recolor=False):
   plt.xticks(y_pos, data)
   plt.ylabel('Zulassungen')
   plt.xlabel(xlab)
-  plt.show()
   plt.savefig('outputs/png/' + genDate() + '_' + filename + '_image.png')
-  #mpld3.show()
-  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename+'_code.html')
+  plt.close(fig)
+  fig2 = plt.figure()
+  barlist = plt.bar(y_pos, height = objects)
+  if recolor:
+    barlist[(len(barlist)-1)].set_color('r')
+  plt.xticks(y_pos, data)
+  plt.ylabel('Zulassungen')
+  plt.xlabel(xlab)
+  mpld3.save_html(fig2,'outputs/mpld3/' + genDate() + '_' + filename+'_code.html')
 
 def drawSingleLinePlot(data,filename='lineplot'):
   objects = data.loc['Elektrisch',]
@@ -197,7 +203,6 @@ def drawSingleLinePlot(data,filename='lineplot'):
   plt.axis(ymin = 0)
 #  plt.xticks(y_pos, data)
   plt.ylabel('Zulassungen')
-  plt.show()
   plt.savefig('outputs/png/' + genDate() + '_' + filename + '_image.png')
   #mpld3.show()
   mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
@@ -213,13 +218,22 @@ def drawRelativePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=Fals
     p2[(len(p2)-1)].set_color('#FFC080')
   plt.xticks(ticks=y_pos,labels=dataSumNE.index)
   plt.ylabel('Anteile Gesamte Inverkehrssetzungen')
-  plt.show()
   plt.xlabel(xlab)
   plt.legend(['Elektroautos','Andere Antriebe'])
   plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
-  #mpld3.show()
-  mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
-  plotly_fig = tls.mpl_to_plotly(fig)
+  plt.close(fig)
+  fig2 = plt.figure()
+  p1 = plt.bar(y_pos, height=objects)
+  p2 = plt.bar(y_pos, height=dataSumNE, bottom=objects)
+  if recolor:
+      p1[(len(p1) - 1)].set_color('C3')
+      p2[(len(p2) - 1)].set_color('#FFC080')
+  plt.xticks(ticks=y_pos, labels=dataSumNE.index)
+  plt.ylabel('Anteile Gesamte Inverkehrssetzungen')
+  plt.xlabel(xlab)
+  plt.legend(['Elektroautos', 'Andere Antriebe'])
+  mpld3.save_html(fig2,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
+  plotly_fig = tls.mpl_to_plotly(fig2)
   plo.plot(plotly_fig, filename='outputs/plotly/' + genDate() + '_' + filename + '_code.html')
 
 def drawMultiplePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=False):
@@ -233,9 +247,18 @@ def drawMultiplePlot(data,dataSumNE,xlab='Jahr',filename='figboth', recolor=Fals
     p2[(len(p2)-1)].set_color('#FFC080')
   plt.xticks(y_pos, data)
   plt.ylabel('Zulassungen')
-  plt.show()
   plt.xlabel(xlab)
   plt.legend(['Elektroautos','Andere Antriebe'])
   plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
-  #mpld3.show()
+  plt.close(fig)
+  fig2 = plt.figure()
+  p1 = plt.bar(y_pos, height = objects)
+  p2 = plt.bar(y_pos, height = dataSumNE, bottom=objects)
+  if recolor:
+    p1[(len(p1)-1)].set_color('C3')
+    p2[(len(p2)-1)].set_color('#FFC080')
+  plt.xticks(y_pos, data)
+  plt.ylabel('Zulassungen')
+  plt.xlabel(xlab)
+  plt.legend(['Elektroautos','Andere Antriebe'])
   mpld3.save_html(fig,'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
