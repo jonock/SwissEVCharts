@@ -27,9 +27,11 @@ def processData():
     dh.drawMultiplePlot(monthlydata.get('data_2019'),monthlydata.get('data_NE_2019'),'Monat','monthlyStacked')
     dh.drawRelativePlot((monthlydata.get('data_2019')).loc['Elektrisch',]/(monthlydata.get('data_2019').sum()),monthlydata.get('data_NE_2019')/(monthlydata.get('data_2019').sum()), 'Monat', filename='relativeValuesMonthly')
     dh.drawRelativePlot(yearlyComplete.loc['Elektrisch',]/yearlyComplete.sum(), dh.yearlyAddNonElectric(yearlyComplete)/yearlyComplete.sum(), xlab='Jahr', filename='relativeYearly', recolor=True)
+    relative = yearlyComplete.loc['Elektrisch',]/yearlyComplete.sum(), dh.yearlyAddNonElectric(yearlyComplete)/yearlyComplete.sum()
+    print(relative)
     print('success')
 
-#gatherData()
+gatherData()
 processData()
 
 
