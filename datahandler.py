@@ -47,7 +47,8 @@ def getMonthlyData(filename='monthlyData.csv'):
               "2",
               "3",
               "4",
-              "5"
+              "5",
+              "6"
             ]
           }
         },
@@ -142,10 +143,10 @@ def modifyMonthlyData(data):
   data2019 = data.drop(columns=['2018'])
   data2019 = data2019.pivot(index='Treibstoff', columns='Monat', values='2019')
   data2018 = data2018.pivot(index='Treibstoff', columns='Monat', values='2018')
-  data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai']]
+  data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni']]
   sum2019 = data2019.sum(axis=1)
   sum2018 = data2018.sum(axis=1)
-  data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai']]
+  data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni']]
   writeCSV(sum2018, 'monthlySum2018.csv')
   writeCSV(sum2019, 'monthlySum2019.csv')
   writeCSV(data2019,'monthly2019.csv')
