@@ -31,8 +31,18 @@ def processData():
     print(relative)
     print('success')
 
-gatherData()
-processData()
+
+def gatherAutoSchweiz():
+    #    dh.requestdataAS()
+    asData = dh.importDataAS()
+    teslaNumbers = dh.getTeslaNumbers(asData)
+    dh.drawTeslaStats(teslaNumbers)
+
+
+gatherAutoSchweiz()
+
+# gatherData()
+# processData()
 
 
 #nonelectric = addNonElectric(data)
