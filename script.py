@@ -14,7 +14,6 @@ def gatherData():
     dh.getMonthlyData()
     dh.getYearlyData()
 
-
 def processData():
     yearly = dh.importData()
     monthly = dh.importMonthlyData()
@@ -31,8 +30,21 @@ def processData():
     print(relative)
     print('success')
 
+
+def gatherAutoSchweiz():
+    dh.requestdataAS()
+
+
+def processDataAS():
+    asData = dh.importDataAS()
+    teslaNumbers = dh.getTeslaNumbers(asData)
+    dh.drawTeslaStats(teslaNumbers)
+
+
 gatherData()
 processData()
+gatherAutoSchweiz()
+processDataAS()
 
 
 #nonelectric = addNonElectric(data)
