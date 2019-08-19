@@ -196,7 +196,6 @@ def getTeslaNumbers(data):
     j = 1
     teslaNumbers = pd.DataFrame(columns=['Monat', 'MonatID', 'Marke', 'Modell', 'Anzahl', 'Differenz'])
     for i in data:
-        # print(data[i][data[i]['Marke']=='Tesla'])
         appendd = data[i][data[i]['Marke'] == 'Tesla']
         appendd.insert(0, 'Monat', i)
         appendd.insert(1, 'MonatID', j)
@@ -205,13 +204,11 @@ def getTeslaNumbers(data):
             for p in appendd['Modell']:
                 dx = (appendd[appendd['Modell'] == str(p)]['Anzahl'])
                 if (teslaNumbers[teslaNumbers['MonatID'] == (j - 1)][teslaNumbers['Modell'] == str(p)]['Anzahl'].empty):
-                    print('empty')
                     dp = pd.Series(data=[0])
                 else:
                     dp = (
                         teslaNumbers[teslaNumbers['MonatID'] == (j - 1)][teslaNumbers['Modell'] == str(p)]['Anzahl'])
                 diff = dx.iloc[0] - dp.iloc[0]
-                print(diff)
                 appendd.loc[appendd['Modell'] == str(p), ['Differenz']] = int(diff)
         teslaNumbers = teslaNumbers.append(appendd, ignore_index=True)
         j = j + 1
@@ -223,7 +220,7 @@ def drawTeslaStats(data):
                   title='Insgesamt zugelassene Tesla Model 3')
     drawTeslaData(data[data['Modell'] == 'Model 3'], query='Differenz', filename='Model_3_Diff', xlab='Monate',
                   title='Neu zugelassene Tesla Model 3')
-    print('gezeichnet')
+    print('Teslaplots erfolgreich')
 
 
 # Methods for drawing plots
