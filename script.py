@@ -14,11 +14,19 @@ def gatherData():
     dh.getMonthlyData()
     dh.getYearlyData()
 
-def processData():
+
+def processDataBFS():
+    global yearly
     yearly = dh.importData()
+    global monthly
     monthly = dh.importMonthlyData()
+    global monthlydata
     monthlydata = dh.modifyMonthlyData(monthly)
+    global yearlyComplete
     yearlyComplete = dh.completeYearly(monthlydata, yearly)
+
+
+def drawBFS():
     dh.drawSinglePlot(yearlyComplete, recolor=True)
     dh.drawMultiplePlot(yearlyComplete, dh.yearlyAddNonElectric(yearlyComplete),filename='multipleComplete', recolor=True)
     dh.drawSinglePlot(monthlydata.get('data_2019'), 'monthlySingle', 'Monat')
@@ -37,14 +45,21 @@ def gatherAutoSchweiz():
 
 def processDataAS():
     asData = dh.importDataAS()
+    global teslaNumbers
     teslaNumbers = dh.getTeslaNumbers(asData)
-    dh.drawTeslaStats(teslaNumbers)
+    #  dh.drawTeslaStats(teslaNumbers)
+    global model3Numbers
+    model3Numbers = dh.drawTeslaComp(
+        teslaNumbers[teslaNumbers['Modell'] == 'Model 3'].sort_values('MonatID', axis=0, ascending=True).loc[:,
+        'Differenz'], monthlydata.get('data_2019').loc['Elektrisch',], filename='Model_3_vs_total')
 
 
 gatherData()
-processData()
+processDataBFS()
 gatherAutoSchweiz()
 processDataAS()
+
+print('Erfolg.')
 
 
 #nonelectric = addNonElectric(data)

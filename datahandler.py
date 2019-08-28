@@ -212,6 +212,9 @@ def getTeslaNumbers(data):
                 appendd.loc[appendd['Modell'] == str(p), ['Differenz']] = int(diff)
         teslaNumbers = teslaNumbers.append(appendd, ignore_index=True)
         j = j + 1
+    teslaNumbers = teslaNumbers.append(
+        {'Monat': 'Jan', 'MonatID': 1, 'Marke': 'Tesla', 'Modell': 'Model 3', 'Anzahl': 0, 'Differenz': 0},
+        ignore_index=True)
     return teslaNumbers
 
 
@@ -339,3 +342,40 @@ def drawMultiplePlot(data, dataSumNE, xlab='Jahr', filename='figboth', recolor=F
     plt.xlabel(xlab)
     plt.legend(['Elektroautos', 'Andere Antriebe'])
     mpld3.save_html(fig, 'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
+
+
+def drawTeslaComp(teslaData, totalData, xlab='Monat', filename='figboth', recolor=False):
+    print(teslaData)
+    teslaData = teslaData.reset_index()
+    totalData = totalData.reset_index()
+    objects = pd.concat([totalData, teslaData], axis=1).reset_index().drop(['index', 'level_0'], axis=1)
+    objects.columns = ['Monat', 'Total Elektrisch', 'Model3']
+    objects['NonModel3'] = objects['Total Elektrisch'] - objects['Model3']
+    objects['relative'] = (objects['Model3'] / objects['Total Elektrisch']) * 100
+    # drawing the figure itself
+    y_pos = np.arange(len(objects))
+    fig = plt.figure(figsize=[16, 9], dpi=250)
+    p1 = plt.bar(y_pos, height=objects['Model3'])
+    p2 = plt.bar(y_pos, height=objects['NonModel3'], bottom=objects['Model3'])
+    if recolor:
+        p1[(len(p1) - 1)].set_color('C3')
+        p2[(len(p2) - 1)].set_color('#FFC080')
+    plt.xticks(y_pos, objects['Monat'])
+    plt.ylabel('Zulassungen')
+    plt.xlabel(xlab)
+    plt.legend(['Tesla Model 3', 'Übrige Elektroautos'])
+    plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
+    plt.close(fig)
+    if recolor:
+        p1[(len(p1) - 1)].set_color('C3')
+        p2[(len(p2) - 1)].set_color('#FFC080')
+    fig2 = plt.figure(figsize=[16, 9], dpi=250)
+    plt.ylim(0, 100)
+    p1 = plt.bar(y_pos, height=objects['relative'])
+    # p2 = plt.bar(y_pos, height=(100 - objects['relative']), bottom=objects['relative'])
+    plt.xticks(y_pos, objects['Monat'])
+    plt.ylabel('Zulassungen')
+    plt.xlabel(xlab)
+    plt.savefig('outputs/png/' + genDate() + '_' + filename + '_relative.png')
+    mpld3.save_html(fig, 'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
+    return objects
