@@ -9,6 +9,10 @@ import csv
 import plotly
 import calendar
 import datahandler as dh
+import datakicker as dk
+import chartadmin as ca
+
+
 
 def gatherData():
     dh.getMonthlyData()
@@ -46,20 +50,46 @@ def gatherAutoSchweiz():
 def processDataAS():
     asData = dh.importDataAS()
     global teslaNumbers
-    teslaNumbers = dh.getTeslaNumbers(asData)
-    #  dh.drawTeslaStats(teslaNumbers)
+    teslaNumbers = dh.getTeslaNumbers(asData, monthlydata.get('data_2019'))
+
+
+def drawAS():
+    dh.drawTeslaStats(teslaNumbers)
     global model3Numbers
     model3Numbers = dh.drawTeslaComp(
-        teslaNumbers[teslaNumbers['Modell'] == 'Model 3'].sort_values('MonatID', axis=0, ascending=True).loc[:,
-        'Differenz'], monthlydata.get('data_2019').loc['Elektrisch',], filename='Model_3_vs_total')
+        teslaNumbers['Monat'], teslaNumbers[('Differenz', 'Model 3')], teslaNumbers[('Elektrisch')],
+        filename='Model_3_vs_total')
 
 
-gatherData()
+def kickdatawrapper():
+    dk.dataWrapperConnect()
+    for i, row in chartIndex.iterrows():
+        print(str(i) + ' und ' + str(row));
+        if len(row['id']) < 3:
+            index = dk.createDWChart(row['title'])
+            print(index)
+            row['id'] = index
+            chartIndex.loc[i, 'id'] = index
+            print(chartIndex.loc[i])
+        dk.addDWData(row['id'], eval(row['query']))
+        print('Chart ' + row['title'] + 'mit Daten beschickt')
+
+
+global chartIndex
+chartIndex = ca.chartAdmin()
+
+# gatherData()
+# gatherAutoSchweiz()
 processDataBFS()
-gatherAutoSchweiz()
 processDataAS()
+kickdatawrapper()
+
+# drawBFS()
+# drawAS()
+ca.chartIndexHousekeeping(chartIndex)
 
 print('Erfolg.')
+
 
 
 #nonelectric = addNonElectric(data)

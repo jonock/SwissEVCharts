@@ -11,7 +11,6 @@ import plotly.plotly as py
 import plotly.tools as tls
 import plotly.offline as plo
 
-
 # General Methods for organizing Files
 def genDate():
     today = date.today()
@@ -83,7 +82,8 @@ def getMonthlyData(filename='monthlyData.csv'):
                         "4",
                         "5",
                         "6",
-                        "7"
+                        "7",
+                        "8"
                     ]
                 }
             },
@@ -158,10 +158,10 @@ def modifyMonthlyData(data):
     data2019 = data.drop(columns=['2018'])
     data2019 = data2019.pivot(index='Treibstoff', columns='Monat', values='2019')
     data2018 = data2018.pivot(index='Treibstoff', columns='Monat', values='2018')
-    data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli']]
+    data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August']]
     sum2019 = data2019.sum(axis=1)
     sum2018 = data2018.sum(axis=1)
-    data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli']]
+    data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August']]
     writeCSV(sum2018, 'monthlySum2018.csv')
     writeCSV(sum2019, 'monthlySum2019.csv')
     writeCSV(data2019, 'monthly2019.csv')
@@ -192,7 +192,7 @@ def yearlyAddNonElectric(data):
     return (dataTemp)
 
 
-def getTeslaNumbers(data):
+def getTeslaNumbers(data, totalData):
     j = 1
     teslaNumbers = pd.DataFrame(columns=['Monat', 'MonatID', 'Marke', 'Modell', 'Anzahl', 'Differenz'])
     for i in data:
@@ -215,14 +215,23 @@ def getTeslaNumbers(data):
     teslaNumbers = teslaNumbers.append(
         {'Monat': 'Jan', 'MonatID': 1, 'Marke': 'Tesla', 'Modell': 'Model 3', 'Anzahl': 0, 'Differenz': 0},
         ignore_index=True)
-    return teslaNumbers
+    teslaNumbers = teslaNumbers.sort_values('MonatID', axis=0, ascending=True)
+    teslaData = teslaNumbers.reset_index()
+    totalData = totalData.transpose().reset_index()
+    totalData.insert(0, 'MonatID', range(1, len(totalData) + 1))
+    totalData = totalData.set_index('MonatID')
+    teslaData = teslaData.pivot(index='MonatID', columns='Modell', values=['Anzahl', 'Differenz'])
+    totalData = totalData.join(teslaData)
+    return totalData
 
 
 def drawTeslaStats(data):
-    drawTeslaData(data[data['Modell'] == 'Model 3'], filename='Model_3', xlab='Monate',
+    drawTeslaData(data, query=('Anzahl', 'Model 3'), filename='Model_3', xlab='Monate',
                   title='Insgesamt zugelassene Tesla Model 3')
-    drawTeslaData(data[data['Modell'] == 'Model 3'], query='Differenz', filename='Model_3_Diff', xlab='Monate',
+    drawTeslaData(data, query=('Differenz', 'Model 3'), filename='Model_3_Diff', xlab='Monate',
                   title='Neu zugelassene Tesla Model 3')
+    drawTeslaData(data, query=('Differenz', 'Model S'), filename='Model_S_Diff', xlab='Monate',
+                  title='Neu zugelassene Tesla Model S')
     print('Teslaplots erfolgreich')
 
 
@@ -312,8 +321,8 @@ def drawRelativePlot(data, dataSumNE, xlab='Jahr', filename='figboth', recolor=F
     plt.xlabel(xlab)
     plt.legend(['Elektroautos', 'Andere Antriebe'])
     mpld3.save_html(fig2, 'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
-    plotly_fig = tls.mpl_to_plotly(fig2)
-    plo.plot(plotly_fig, filename='outputs/plotly/' + genDate() + '_' + filename + '_code.html')
+    # lplotly_fig = tls.mpl_to_plotly(fig2)
+    # plo.plot(plotly_fig, filename='outputs/plotly/' + genDate() + '_' + filename + '_code.html')
 
 
 def drawMultiplePlot(data, dataSumNE, xlab='Jahr', filename='figboth', recolor=False):
@@ -344,19 +353,17 @@ def drawMultiplePlot(data, dataSumNE, xlab='Jahr', filename='figboth', recolor=F
     mpld3.save_html(fig, 'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
 
 
-def drawTeslaComp(teslaData, totalData, xlab='Monat', filename='figboth', recolor=False):
+def drawTeslaComp(months, teslaData, totalData, xlab='Monat', filename='figboth', recolor=False):
     print(teslaData)
-    teslaData = teslaData.reset_index()
-    totalData = totalData.reset_index()
-    objects = pd.concat([totalData, teslaData], axis=1).reset_index().drop(['index', 'level_0'], axis=1)
-    objects.columns = ['Monat', 'Total Elektrisch', 'Model3']
-    objects['NonModel3'] = objects['Total Elektrisch'] - objects['Model3']
-    objects['relative'] = (objects['Model3'] / objects['Total Elektrisch']) * 100
+    objects = pd.concat([months, totalData, teslaData], axis=1)
+    objects.columns = ['Monat', 'Total Elektrisch', 'Model 3']
+    objects['NonModel3'] = objects['Total Elektrisch'] - objects['Model 3']
+    objects['relative'] = (objects['Model 3'] / objects['Total Elektrisch']) * 100
     # drawing the figure itself
     y_pos = np.arange(len(objects))
     fig = plt.figure(figsize=[16, 9], dpi=250)
-    p1 = plt.bar(y_pos, height=objects['Model3'])
-    p2 = plt.bar(y_pos, height=objects['NonModel3'], bottom=objects['Model3'])
+    p1 = plt.bar(y_pos, height=objects['Model 3'])
+    p2 = plt.bar(y_pos, height=objects['NonModel3'], bottom=objects['Model 3'])
     if recolor:
         p1[(len(p1) - 1)].set_color('C3')
         p2[(len(p2) - 1)].set_color('#FFC080')
@@ -366,16 +373,4 @@ def drawTeslaComp(teslaData, totalData, xlab='Monat', filename='figboth', recolo
     plt.legend(['Tesla Model 3', 'Übrige Elektroautos'])
     plt.savefig('outputs/png/' + genDate() + '_' + filename + '_legend.png')
     plt.close(fig)
-    if recolor:
-        p1[(len(p1) - 1)].set_color('C3')
-        p2[(len(p2) - 1)].set_color('#FFC080')
-    fig2 = plt.figure(figsize=[16, 9], dpi=250)
-    plt.ylim(0, 100)
-    p1 = plt.bar(y_pos, height=objects['relative'])
-    # p2 = plt.bar(y_pos, height=(100 - objects['relative']), bottom=objects['relative'])
-    plt.xticks(y_pos, objects['Monat'])
-    plt.ylabel('Zulassungen')
-    plt.xlabel(xlab)
-    plt.savefig('outputs/png/' + genDate() + '_' + filename + '_relative.png')
-    mpld3.save_html(fig, 'outputs/mpld3/' + genDate() + '_' + filename + '_code.html')
     return objects
