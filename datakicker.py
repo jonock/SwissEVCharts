@@ -46,13 +46,12 @@ def addDWData(id, dataimp):
     }
     print(id)
     print(dataimp)
-    data = dataimp.to_csv(f'data/{id}_data.csv', index=True, encoding='utf-8')
+    data = dataimp.to_csv(f'data/dwcharts/{id}_data.csv', index=True, encoding='utf-8')
     print(repr(data))
     url = f'https://api.datawrapper.de/charts/{id}/data'
 
-    respo = requests.put(url, headers=headers, data=data)
-    print(respo.text + '<- müsste leer gewesen sein')
-    webbrowser.open(f'https://datawrapper.de/chart/{id}/upload')
+    #    respo = requests.put(url, headers=headers, data=data)
+    #    webbrowser.open(f'https://datawrapper.de/chart/{id}/upload')
     headers = {
         'authorization': f'Bearer {dwToken}'
     }

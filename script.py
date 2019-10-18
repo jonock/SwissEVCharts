@@ -55,10 +55,9 @@ def processDataAS():
 
 def drawAS():
     dh.drawTeslaStats(teslaNumbers)
-    global model3Numbers
-    model3Numbers = dh.drawTeslaComp(
-        teslaNumbers['Monat'], teslaNumbers[('Differenz', 'Model 3')], teslaNumbers[('Elektrisch')],
-        filename='Model_3_vs_total')
+    # global model3Numbers
+    # model3Numbers = dh.drawTeslaComp(
+    #    teslaNumbers['Monat'], teslaNumbers[('Differenz', 'Model 3')], teslaNumbers[('Elektrisch')],filename='Model_3_vs_total')
 
 
 def kickdatawrapper():
@@ -79,13 +78,12 @@ global chartIndex
 chartIndex = ca.chartAdmin()
 
 # gatherData()
-# gatherAutoSchweiz()
+#gatherAutoSchweiz()
 processDataBFS()
 processDataAS()
+drawBFS()
+drawAS()
 kickdatawrapper()
-
-# drawBFS()
-# drawAS()
 ca.chartIndexHousekeeping(chartIndex)
 
 print('Erfolg.')
