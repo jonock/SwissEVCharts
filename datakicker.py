@@ -55,7 +55,7 @@ def addDWData(id, dataimp):
     headers = {
         'authorization': f'Bearer {dwToken}'
     }
-    print((requests.get(url=f'https://api.datawrapper.de/v3/charts/{id}/data', headers=headers).json()))
+    # print((requests.get(url=f'https://api.datawrapper.de/v3/charts/{id}/data', headers=headers).json()))
 
     metadata = {
         'title': 'newTitleSet',

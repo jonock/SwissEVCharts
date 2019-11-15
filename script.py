@@ -77,14 +77,24 @@ def kickdatawrapper():
 global chartIndex
 chartIndex = ca.chartAdmin()
 
-# gatherData()
-#gatherAutoSchweiz()
+
+def csvcorrections():
+    # hardcoded stuff for nasty mistakes due to improper coding...
+    data = pd.read_csv('data/dwcharts/t--N8_data.csv', header=0,
+                       names=['MonatID', 'Monat', 'Model 3', 'Model S', 'Model X'])
+    data = data.drop('MonatID', axis=1)
+    data.to_csv('data/dwcharts/t--N8_data.csv', index=False)
+
+
+gatherData()
+gatherAutoSchweiz()
 processDataBFS()
 processDataAS()
 drawBFS()
 drawAS()
 kickdatawrapper()
 ca.chartIndexHousekeeping(chartIndex)
+csvcorrections()
 
 print('Erfolg.')
 
@@ -93,3 +103,5 @@ print('Erfolg.')
 #nonelectric = addNonElectric(data)
 #drawSinglePlot(data)
 #drawMultiplePlot(data,nonelectric
+
+print('das Skript ist bis zum Schluss gelaufen. Wer hätte das gedacht...')
