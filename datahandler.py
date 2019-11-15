@@ -7,9 +7,6 @@ import numpy as np
 from datetime import date
 import csv
 import calendar
-import plotly.plotly as py
-import plotly.tools as tls
-import plotly.offline as plo
 
 # General Methods for organizing Files
 def genDate():

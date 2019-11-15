@@ -11,7 +11,7 @@ import calendar
 import datahandler as dh
 import datakicker as dk
 import chartadmin as ca
-
+import ftpupload as fu
 
 
 def gatherData():
@@ -95,7 +95,7 @@ drawAS()
 kickdatawrapper()
 ca.chartIndexHousekeeping(chartIndex)
 csvcorrections()
-
+fu.ftpupload('data/dwcharts/')
 print('Erfolg.')
 
 
