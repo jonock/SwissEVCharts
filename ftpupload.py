@@ -18,5 +18,3 @@ def ftpupload(folderpath='data/dwcharts/'):
         print (f'{filename} hochgeladen')
     ftp.quit()
     print(f'ftp upload an {ftpserver} erfolgreich')
-
-ftpupload()

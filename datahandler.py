@@ -37,9 +37,10 @@ def importData(filename=modifyFilename('yearlyData.csv')):
     return (data)
 
 
-def importMonthlyData(filename=modifyFilename('monthlyData.csv')):
-    monthlyData = pd.read_csv(filename, sep=',', header=0, index_col=0)
-    return (monthlyData)
+def importMonthlyData(filename1='data/monthly_cont.csv', filename2=modifyFilename('monthlyData.csv')):
+    monthlyDataNew = pd.read_csv(filename2, sep=',', header=0, index_col=False)
+    monthlyDataOld = pd.read_csv(filename1, sep=',', header=0, index_col=0)
+    return (monthlyDataNew, monthlyDataOld)
 
 
 # Methods for requesting Data
@@ -82,7 +83,9 @@ def getMonthlyData(filename='monthlyData.csv'):
                         "7",
                         "8",
                         "9",
-                        "10"
+                        "10",
+                        "11",
+                        "12"
                     ]
                 }
             },
@@ -121,6 +124,7 @@ def getMonthlyData(filename='monthlyData.csv'):
     return r
 
 
+
 def getYearlyData(filename='yearlyData.csv'):
     payload = {
         "query": [
@@ -149,6 +153,39 @@ def getYearlyData(filename='yearlyData.csv'):
     writeData(r, filename)
 
 
+def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
+    monthlyNEW2020 = monthlyNEW.drop(columns=['2019'])
+    monthlyNEW2020['Jahr'] = '2020'
+    unique = pd.DataFrame(monthlyNEW2020.Monat.unique(), columns=['Monat'])
+    unique.index += 1
+    unique['monthnumber'] = list(unique.index)
+    unique.monthnumber = unique.monthnumber.astype(str)
+    unique['monthnumber'] = unique['monthnumber'].apply(lambda x: x.zfill(2))
+    monthlyNEW2020 = monthlyNEW2020.merge(unique, on='Monat', how='left')
+    monthlyNEW2020['datestring'] = 0
+    monthlyNEW2020['datestring'] = monthlyNEW2020['datestring'].apply(
+        lambda x: monthlyNEW2020['Monat'] + ' ' + monthlyNEW2020['Jahr'])
+    monthlyNEW2020['Jahr'] = monthlyNEW2020['Jahr'].apply(lambda x: str(x) + '-' + (monthlyNEW2020['monthnumber']))
+    monthlyNEW2020 = monthlyNEW2020.drop(['Fahrzeuggruppe / -art'], axis=1).rename(columns={'2020': 'n'})
+    cols = ['Jahr', 'Monat', 'Treibstoff', 'n', 'monthnumber', 'datestring']
+    monthlyNEW2020 = monthlyNEW2020[cols]
+    monthlyComplete = pd.concat([monthlyOLD, monthlyNEW2020], axis=0, sort=False)
+    writeCSV(monthlyComplete, 'CompleteData.csv')
+
+    # Pivot der Daten
+    monthlyPivot = monthlyComplete.pivot(index='Jahr', columns='Treibstoff', values='n')
+    writeCSV(monthlyPivot, 'CompleteDataPivot.csv')
+
+    # Additional Outputs
+    # - Nur Elektrisch
+    monthlyElectric = monthlyPivot.drop(
+        ['Andere', 'Benzin', 'Benzin-elektrisch', 'Diesel', 'Diesel-elektrisch', 'Gas (mono- und bivalent)',
+         'Ohne Motor'], axis=1)
+    writeCSV(monthlyElectric, 'MonthlyElectric.csv')
+    return monthlyPivot
+    print('Monatsdaten Abgeschlossen')
+
+
 def modifyMonthlyData(data):
     data.set_index(['Treibstoff'])
     data = data.drop(columns=['Fahrzeuggruppe / -art'])
@@ -157,10 +194,17 @@ def modifyMonthlyData(data):
     data2019 = data.drop(columns=['2018'])
     data2019 = data2019.pivot(index='Treibstoff', columns='Monat', values='2019')
     data2018 = data2018.pivot(index='Treibstoff', columns='Monat', values='2018')
-    data2019 = data2019[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober']]
+    # Sortieren der Spalten - keine Benennung
+    data2018 = data2018[
+        ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November',
+         'Dezember']]
+    data2019 = data2019[
+        ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November',
+         'Dezember']]
+    #    data2019 = data2019.columns = ['Januar 2019', 'Februar 2019', 'März 2019', 'April 2019', 'Mai 2019', 'Juni 2019', 'Juli 2019', 'August 2019', 'September 2019', 'Oktober 2019', 'November 2019', 'Dezember 2019']
+    #    data2018 = data2018.columns = ['Januar 2018', 'Februar 2018', 'März 2018', 'April 2018', 'Mai 2018', 'Juni 2018', 'Juli 2018', 'August 2018', 'September 2018', 'Oktober 2018', 'November 2018', 'Dezember 2018']
     sum2019 = data2019.sum(axis=1)
     sum2018 = data2018.sum(axis=1)
-    data2018 = data2018[['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober']]
     writeCSV(sum2018, 'monthlySum2018.csv')
     writeCSV(sum2019, 'monthlySum2019.csv')
     writeCSV(data2019, 'monthly2019.csv')
@@ -178,9 +222,18 @@ def modifyMonthlyData(data):
 
 
 def completeYearly(monthlydata, yearly):
-    sum2019 = monthlydata.get('sum_2019')
-    sum2019 = sum2019.rename('2019')
-    yearly = yearly.merge(sum2019, left_index=True, right_index=True)
+    sum2020 = monthlydata
+
+    # SUBSET 2020 -> SUM Elektrisch
+
+    sum2020 = monthlydata.loc['2020-01']
+    #   sum2020 = sum2020electric.rename['2020']
+    yearly = yearly.merge(sum2020, left_index=True, right_index=True)
+    yearly = yearly.rename(columns={'2020-01': '2020'})
+    writeCSV(yearly, 'YearlyData_app.csv')
+    yearlyelectric = yearly.loc['Elektrisch']
+    yearlyelectric = yearlyelectric.iloc[4:]
+    writeCSV(yearlyelectric, 'YearlyElectric.csv')
     return (yearly)
 
 

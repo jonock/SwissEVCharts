@@ -23,9 +23,9 @@ def processDataBFS():
     global yearly
     yearly = dh.importData()
     global monthly
-    monthly = dh.importMonthlyData()
+    monthlyNEW, monthlyOLD = dh.importMonthlyData()
     global monthlydata
-    monthlydata = dh.modifyMonthlyData(monthly)
+    monthlydata = dh.modifyMonthlyData2020(monthlyNEW, monthlyOLD)
     global yearlyComplete
     yearlyComplete = dh.completeYearly(monthlydata, yearly)
 
