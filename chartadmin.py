@@ -20,9 +20,12 @@ def chartIndexHousekeeping(data):
 
 def createChartIndex():
     global chartIndex
-    chartIndex = pd.DataFrame(data={'id': [0, 0], 'title': ['Jährliche Zulassungen von Elektroautos',
-                                                            'Monatliche Zulassungen in der Schweiz'],
-                                    'query': ['teslaNumbers', 'yearly']})
+    chartIndex = pd.DataFrame(data={'id': [0, 0, 0, 0], 'title': ['Jährliche Zulassungen von Elektroautos',
+                                                                  'Jährliche Zulassungen aller Antriebsarten',
+                                                                  'Monatliche Zulassungen von Elektroautos seit 2018',
+                                                                  'Monatliche Zulassungen aller Antriebsarten seit 2018'],
+                                    'filename': ['yearlyElectric.csv', 'yearlyData.csv', 'monthlyElectric.csv',
+                                                 'completeDataPivot.csv']})
     return chartIndex
 
 

@@ -66,6 +66,42 @@ def addDWData(id, dataimp):
     # print(response.json())
 
 
+def updatedwchart(id, filename, timeframe='0'):
+    data = open(filename, 'r')
+    # data.to_csv('dataupload.csv', encoding='utf8')
+    # data = data.to_csv(encoding='utf8')
+    url = f'https://api.datawrapper.de/v3/charts/{id}/data'
+    headers = {
+        'authorization': f'Bearer {dwToken}',
+        'content-type': 'text/csv'
+    }
+    dataupdate = ((requests.put(url=url, headers=headers, data=data)))
+
+    # Beschreibung Updaten
+    url = f'https://api.datawrapper.de/v3/charts/{id}'
+    headers = {
+        'authorization': f'Bearer {dwToken}'
+    }
+    if timeframe != '0':
+        message = 'Zeitraum der Daten: ' + timeframe
+    else:
+        message = ''
+    payload = {
+        'metadata': {
+            'annotate': {
+                'notes': f'{message}'
+            }
+        }
+    }
+
+    #    payload = json.dumps(payload)
+    description = ((requests.patch(url=url, headers=headers, json=payload)))
+    url = f'https://api.datawrapper.de/charts/{id}/publish'
+    payload = ({'json': True})
+    publish = (requests.post(url=url, headers=headers, json=payload))
+    print(publish.json())
+
+
 def getChartMetadata(id):
     headers = {
         'authorization': f'Bearer {dwToken}'

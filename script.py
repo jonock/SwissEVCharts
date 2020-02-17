@@ -64,13 +64,7 @@ def kickdatawrapper():
     dk.dataWrapperConnect()
     for i, row in chartIndex.iterrows():
         print(str(i) + ' und ' + str(row));
-        if len(row['id']) < 3:
-            index = dk.createDWChart(row['title'])
-            print(index)
-            row['id'] = index
-            chartIndex.loc[i, 'id'] = index
-            print(chartIndex.loc[i])
-        dk.addDWData(row['id'], eval(row['query']))
+        dk.updatedwchart(row['id'], dh.modifyFilename(row['filename']))
         print('Chart ' + row['title'] + 'mit Daten beschickt')
 
 
@@ -90,18 +84,16 @@ gatherData()
 gatherAutoSchweiz()
 processDataBFS()
 processDataAS()
-drawBFS()
-drawAS()
+# drawBFS()
+# drawAS()
 kickdatawrapper()
 ca.chartIndexHousekeeping(chartIndex)
-csvcorrections()
+# csvcorrections()
 fu.ftpupload('data/dwcharts/')
 print('Erfolg.')
 
-
-
-#nonelectric = addNonElectric(data)
-#drawSinglePlot(data)
+# nonelectric = addNonElectric(data)
+# drawSinglePlot(data)
 #drawMultiplePlot(data,nonelectric
 
 print('das Skript ist bis zum Schluss gelaufen. Wer hätte das gedacht...')

@@ -174,14 +174,14 @@ def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
 
     # Pivot der Daten
     monthlyPivot = monthlyComplete.pivot(index='Jahr', columns='Treibstoff', values='n')
-    writeCSV(monthlyPivot, 'CompleteDataPivot.csv')
+    writeCSV(monthlyPivot, 'completeDataPivot.csv')
 
     # Additional Outputs
     # - Nur Elektrisch
     monthlyElectric = monthlyPivot.drop(
         ['Andere', 'Benzin', 'Benzin-elektrisch', 'Diesel', 'Diesel-elektrisch', 'Gas (mono- und bivalent)',
          'Ohne Motor'], axis=1)
-    writeCSV(monthlyElectric, 'MonthlyElectric.csv')
+    writeCSV(monthlyElectric, 'monthlyElectric.csv')
     return monthlyPivot
     print('Monatsdaten Abgeschlossen')
 
@@ -223,17 +223,22 @@ def modifyMonthlyData(data):
 
 def completeYearly(monthlydata, yearly):
     sum2020 = monthlydata
-
-    # SUBSET 2020 -> SUM Elektrisch
-
     sum2020 = monthlydata.loc['2020-01']
     #   sum2020 = sum2020electric.rename['2020']
     yearly = yearly.merge(sum2020, left_index=True, right_index=True)
     yearly = yearly.rename(columns={'2020-01': '2020'})
+
     writeCSV(yearly, 'YearlyData_app.csv')
     yearlyelectric = yearly.loc['Elektrisch']
-    yearlyelectric = yearlyelectric.iloc[4:]
-    writeCSV(yearlyelectric, 'YearlyElectric.csv')
+    yearlyelectricexport = yearlyelectric.iloc[4:]
+    writeCSV(yearlyelectricexport, 'yearlyElectric.csv')
+
+    yearlynonev = yearlyAddNonElectric(yearly)
+    yearlycomplete = pd.DataFrame(dict(Elektrisch=yearlyelectric, Andere=yearlynonev))
+    yearlycompleteexport = yearlycomplete.iloc[4:]
+    # yearlycomplete = yearlycomplete.rename(columns={'index':'Jahr'})
+    writeCSV(yearlycompleteexport, 'yearlyComp.csv')
+
     return (yearly)
 
 
@@ -269,12 +274,16 @@ def getTeslaNumbers(data, totalData):
         ignore_index=True)
     teslaNumbers = teslaNumbers.sort_values('MonatID', axis=0, ascending=True)
     teslaData = teslaNumbers.reset_index()
-    totalData = totalData.transpose().reset_index()
-    totalData.insert(0, 'MonatID', range(1, len(totalData) + 1))
-    totalData = totalData.set_index('MonatID')
+    #    totalData = totalData.transpose().reset_index()
+    #    totalData.insert(0, 'MonatID', range(1, len(totalData) + 1))
+    #    totalData = totalData.set_index('MonatID')
     teslaData = teslaData.pivot(index='MonatID', columns='Modell', values=['Anzahl', 'Differenz'])
-    totalData = totalData.join(teslaData)
-    return totalData
+    #    totalData = totalData.join(teslaData)
+    #    return totalData
+    teslaDataDiff = teslaData.drop(columns='Anzahl')
+
+    writeCSV(teslaDataDiff, 'TeslaData.csv')
+    return teslaData
 
 
 def drawTeslaStats(data):
