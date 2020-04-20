@@ -165,7 +165,8 @@ def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
     monthlyNEW2020['datestring'] = 0
     monthlyNEW2020['datestring'] = monthlyNEW2020['datestring'].apply(
         lambda x: monthlyNEW2020['Monat'] + ' ' + monthlyNEW2020['Jahr'])
-    monthlyNEW2020['Jahr'] = monthlyNEW2020['Jahr'].apply(lambda x: str(x) + '-' + (monthlyNEW2020['monthnumber']))
+    # monthlyNEW2020['Jahr'] = monthlyNEW2020['Jahr'].apply(lambda x: str(x) + '-' + str(x))
+    monthlyNEW2020['Jahr'] = monthlyNEW2020[['Jahr', 'monthnumber']].agg('-'.join, axis=1)
     monthlyNEW2020 = monthlyNEW2020.drop(['Fahrzeuggruppe / -art'], axis=1).rename(columns={'2020': 'n'})
     cols = ['Jahr', 'Monat', 'Treibstoff', 'n', 'monthnumber', 'datestring']
     monthlyNEW2020 = monthlyNEW2020[cols]
@@ -222,12 +223,9 @@ def modifyMonthlyData(data):
 
 
 def completeYearly(monthlydata, yearly):
-    sum2020 = monthlydata
-    sum2020 = monthlydata.loc['2020-01']
-    #   sum2020 = sum2020electric.rename['2020']
-    yearly = yearly.merge(sum2020, left_index=True, right_index=True)
-    yearly = yearly.rename(columns={'2020-01': '2020'})
-
+    sum2020 = monthlydata.loc['2020-01': '2020-12']
+    sum2020 = sum2020.sum(axis=0)
+    yearly['2020'] = sum2020
     writeCSV(yearly, 'YearlyData_app.csv')
     yearlyelectric = yearly.loc['Elektrisch']
     yearlyelectricexport = yearlyelectric.iloc[4:]
