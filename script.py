@@ -83,7 +83,7 @@ def csvcorrections():
 gatherData()
 gatherAutoSchweiz()
 processDataBFS()
-processDataAS()
+# processDataAS()
 # drawBFS()
 # drawAS()
 kickdatawrapper()
