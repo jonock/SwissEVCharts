@@ -2,7 +2,8 @@ from ftplib import FTP
 from credentials import ftplogin, ftppassword, ftpserver
 import os
 
-print(ftpserver + ftplogin + ftppassword)
+
+# print(ftpserver + ftplogin + ftppassword)
 
 def ftpupload(folderpath='data/dwcharts/'):
     ftp = FTP(ftpserver)

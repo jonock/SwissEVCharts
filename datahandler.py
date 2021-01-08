@@ -7,6 +7,7 @@ import numpy as np
 from datetime import date
 import csv
 import calendar
+import os
 
 # General Methods for organizing Files
 def genDate():
@@ -123,8 +124,6 @@ def getMonthlyData(filename='monthlyData.csv'):
     writeData(r, filename)
     return r
 
-
-
 def getYearlyData(filename='yearlyData.csv'):
     payload = {
         "query": [
@@ -151,6 +150,82 @@ def getYearlyData(filename='yearlyData.csv'):
     url = 'https://www.pxweb.bfs.admin.ch/api/v1/de/px-x-1103020200_200/px-x-1103020200_200.px'
     r = requestdataBFS(url, payload)
     writeData(r, filename)
+
+
+def processMOFIShistory():
+    getMOFISData(filename='mofis2018.xlsx',
+                 url='https://files.admin.ch/astra_ffr/mofis/Datenlieferungs-Kunden/opendata/1000-Fahrzeuge_IVZ/1200-Neuzulassungen/1220-Neuzlassungsbericht_woechentlich/1222-Vorjahresdaten/NEUZU_W-2018.xlsx')
+    getMOFISData(filename='mofis2019.xlsx',
+                 url='https://files.admin.ch/astra_ffr/mofis/Datenlieferungs-Kunden/opendata/1000-Fahrzeuge_IVZ/1200-Neuzulassungen/1220-Neuzlassungsbericht_woechentlich/1222-Vorjahresdaten/NEUZU_W-2019.xlsx')
+    importMOFISdata(filename=('data/20210108_mofis2018.xlsb'), destfilename='mofis2018.csv')
+    importMOFISdata(filename=modifyFilename('mofis2019.xlsb'), destfilename='mofis2019.csv')
+    modifyMOFISData(filename=modifyFilename('mofis2018.csv'), destfilename='mofismonthly_2018.csv')
+    modifyMOFISData(filename=modifyFilename('mofis2019.csv'), destfilename='mofismonthly_2019.csv')
+
+
+def getMOFISData(filename='mofisData.xlsb',
+                 url='https://files.admin.ch/astra_ffr/mofis/Datenlieferungs-Kunden/opendata/1000-Fahrzeuge_IVZ/1200-Neuzulassungen/1220-Neuzlassungsbericht_woechentlich/NEUZU_W.xlsb'):
+    if os.path.isfile(modifyFilename(filename)):
+        print('MOFIS Datei schon vorhanden')
+    else:
+        print('MOFIS Datei wird heruntergeladen')
+        r = requests.get(url, allow_redirects=True)
+        open(modifyFilename(filename), 'wb').write(r.content)
+        print('Neuste MOFIS Datei heruntergeladen')
+
+
+def importMOFISdata(filename=modifyFilename('mofisData.xlsb'), destfilename='mofis_raw_clean.csv'):
+    if filename[-4:] == 'xlsb':
+        data = pd.read_excel(filename, engine='pyxlsb', sheet_name='Rohdaten')
+    if filename[-3:] == 'xls':
+        data = pd.read_excel(filename, sheet_name='Rohdaten')
+    data = data.drop(data.columns[0], axis=1)
+    data.iloc[5] = data.iloc[5].str.replace('\n', '').str.replace('-', '')
+    data.columns = data.iloc[5]
+    data = data.iloc[6:]
+    data.to_csv(modifyFilename(destfilename))
+    print('rohdaten excel file importiert, csv abgespeichert')
+    explainations = pd.read_excel(filename, engine='pyxlsb', sheet_name='Erläuterungen')
+    if filename == modifyFilename('mofisData.xlsb'):
+        global mofis_latestupdate
+        mofis_latestupdate = explainations.iat[11, 4]
+        print('MOFIS Stand: ' + mofis_latestupdate)
+        with open('latestupdateMOFIS.txt', 'w') as text_file:
+            text_file.write(mofis_latestupdate)
+
+
+def modifyMOFISData(filename=modifyFilename('mofis_raw_clean.csv'), destfilename='mofis_monthly_thisyear.csv'):
+    data = pd.read_csv(filename)
+    print('Mofis Daten für auswertung geladen')
+    data = data[data['Fahrzeugart'] == '01 Personenwagen']
+    count = data.groupby(['Erstinverkehrsetzung_Monat', 'Treibstoff', 'Erstinverkehrsetzung_Jahr']).sum()
+    countPivot = count['AnzahlFahrzeuge'].unstack(level=['Treibstoff'])
+    countPivot.reset_index(inplace=True)
+    countPivot['Erstinverkehrsetzung_Jahr'] = countPivot.Erstinverkehrsetzung_Jahr.astype(int).astype(str)
+    countPivot['Erstinverkehrsetzung_Monat'] = countPivot.Erstinverkehrsetzung_Monat.astype(int).astype(str)
+    countPivot['Erstinverkehrsetzung_Monat'] = countPivot['Erstinverkehrsetzung_Monat'].apply(lambda x: x.zfill(2))
+    countPivot['date'] = countPivot[['Erstinverkehrsetzung_Jahr', 'Erstinverkehrsetzung_Monat']].agg('-'.join, axis=1)
+    countPivot = countPivot.drop(columns=['Erstinverkehrsetzung_Jahr', 'Erstinverkehrsetzung_Monat'])
+    countPivot = countPivot.set_index('date')
+    writeCSV(countPivot, destfilename)
+    print('Personenwagen nach Monaten gezählt - MOFIS Tabelle gespeichert')
+
+
+def aggregate2020Data():
+    mofisBASEa = pd.read_csv('data/20210108_mofismonthly_2018.csv', index_col=False)
+    mofisBASEb = pd.read_csv('data/20210108_mofismonthly_2019.csv', index_col=False)
+    monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
+    aggregated = mofisBASEa.append(mofisBASEb, ignore_index=True)
+    aggregated = aggregated.append(monthlyDataToAdd, ignore_index=True)
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'))
+    print('Tabelle 2018-2020 geschrieben')
+
+
+def aggregateNewData():
+    mofisBase = pd.read_csv('data/mofis_BASE2020.csv', index_col=False)
+    monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
+    aggregated = mofisBase.append(monthlyDataToAdd, ignore_index=True)
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'))
 
 
 def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
@@ -183,9 +258,23 @@ def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
         ['Andere', 'Benzin', 'Benzin-elektrisch', 'Diesel', 'Diesel-elektrisch', 'Gas (mono- und bivalent)',
          'Ohne Motor'], axis=1)
     writeCSV(monthlyElectric, 'monthlyElectric.csv')
+
+    # - Nur Nicht-elektrisch
+    monthlyNonElectric = monthlyPivot.drop(
+        ['Elektrisch'], axis=1)
+    monthlyNonElectric['Nicht-Elektrisch'] = monthlyNonElectric.sum(axis=1)
+    monthlyNonElectric = monthlyNonElectric.drop(
+        ['Andere', 'Benzin', 'Benzin-elektrisch', 'Diesel', 'Diesel-elektrisch', 'Gas (mono- und bivalent)',
+         'Ohne Motor'], axis=1
+    )
+    writeCSV(monthlyNonElectric, 'monthlyNonElectric.csv')
+
+    # - Elektrisch und Nicht-Elektrisch
+    monthlyElNonEl = pd.concat([monthlyElectric, monthlyNonElectric], axis=1)
+    print(monthlyElNonEl)
+    writeCSV(monthlyElNonEl, 'monthlyElNonEl.csv')
     return monthlyPivot
     print('Monatsdaten Abgeschlossen')
-
 
 def modifyMonthlyData(data):
     data.set_index(['Treibstoff'])

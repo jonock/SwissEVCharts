@@ -30,14 +30,25 @@ def processDataBFS():
     yearlyComplete = dh.completeYearly(monthlydata, yearly)
 
 
+def processData2021():
+    global yearly
+    yearly = dh.importData()
+    global monthly
+
+
 def drawBFS():
     dh.drawSinglePlot(yearlyComplete, recolor=True)
-    dh.drawMultiplePlot(yearlyComplete, dh.yearlyAddNonElectric(yearlyComplete),filename='multipleComplete', recolor=True)
+    dh.drawMultiplePlot(yearlyComplete, dh.yearlyAddNonElectric(yearlyComplete), filename='multipleComplete',
+                        recolor=True)
     dh.drawSinglePlot(monthlydata.get('data_2019'), 'monthlySingle', 'Monat')
     dh.drawSingleLinePlot(monthlydata.get('data_2019'))
-    dh.drawMultiplePlot(monthlydata.get('data_2019'),monthlydata.get('data_NE_2019'),'Monat','monthlyStacked')
-    dh.drawRelativePlot((monthlydata.get('data_2019')).loc['Elektrisch',]/(monthlydata.get('data_2019').sum()),monthlydata.get('data_NE_2019')/(monthlydata.get('data_2019').sum()), 'Monat', filename='relativeValuesMonthly')
-    dh.drawRelativePlot(yearlyComplete.loc['Elektrisch',]/yearlyComplete.sum(), dh.yearlyAddNonElectric(yearlyComplete)/yearlyComplete.sum(), xlab='Jahr', filename='relativeYearly', recolor=True)
+    dh.drawMultiplePlot(monthlydata.get('data_2019'), monthlydata.get('data_NE_2019'), 'Monat', 'monthlyStacked')
+    dh.drawRelativePlot((monthlydata.get('data_2019')).loc['Elektrisch',] / (monthlydata.get('data_2019').sum()),
+                        monthlydata.get('data_NE_2019') / (monthlydata.get('data_2019').sum()), 'Monat',
+                        filename='relativeValuesMonthly')
+    dh.drawRelativePlot(yearlyComplete.loc['Elektrisch',] / yearlyComplete.sum(),
+                        dh.yearlyAddNonElectric(yearlyComplete) / yearlyComplete.sum(), xlab='Jahr',
+                        filename='relativeYearly', recolor=True)
     relative = yearlyComplete.loc['Elektrisch',]/yearlyComplete.sum(), dh.yearlyAddNonElectric(yearlyComplete)/yearlyComplete.sum()
     print(relative)
     print('success')
@@ -72,6 +83,7 @@ global chartIndex
 chartIndex = ca.chartAdmin()
 
 
+
 def csvcorrections():
     # hardcoded stuff for nasty mistakes due to improper coding...
     data = pd.read_csv('data/dwcharts/t--N8_data.csv', header=0,
@@ -80,20 +92,27 @@ def csvcorrections():
     data.to_csv('data/dwcharts/t--N8_data.csv', index=False)
 
 
-gatherData()
-gatherAutoSchweiz()
-processDataBFS()
+def processMOFISData():
+    dh.getMOFISData()
+    dh.importMOFISdata()
+    dh.modifyMOFISData()
+    dh.aggregateNewData()
+
+
+# gatherData()
+# gatherAutoSchweiz()
+# processDataBFS()
 # processDataAS()
 # drawBFS()
 # drawAS()
 kickdatawrapper()
 ca.chartIndexHousekeeping(chartIndex)
 # csvcorrections()
-fu.ftpupload('data/dwcharts/')
-print('Erfolg.')
+# fu.ftpupload('data/dwcharts/')
+# print('Erfolg.')
 
 # nonelectric = addNonElectric(data)
 # drawSinglePlot(data)
-#drawMultiplePlot(data,nonelectric
+# drawMultiplePlot(data,nonelectric
 
 print('das Skript ist bis zum Schluss gelaufen. Wer hätte das gedacht...')
