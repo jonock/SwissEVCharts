@@ -105,6 +105,7 @@ def processMOFISData():
 # processDataAS()
 # drawBFS()
 # drawAS()
+processMOFISData()
 kickdatawrapper()
 ca.chartIndexHousekeeping(chartIndex)
 # csvcorrections()

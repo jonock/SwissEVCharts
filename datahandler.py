@@ -217,7 +217,7 @@ def aggregate2020Data():
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBASEa.append(mofisBASEb, ignore_index=True)
     aggregated = aggregated.append(monthlyDataToAdd, ignore_index=True)
-    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'))
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), index=False)
     print('Tabelle 2018-2020 geschrieben')
 
 
@@ -225,8 +225,7 @@ def aggregateNewData():
     mofisBase = pd.read_csv('data/mofis_BASE2020.csv', index_col=False)
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBase.append(monthlyDataToAdd, ignore_index=True)
-    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'))
-
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv', index=False))
 
 def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
     monthlyNEW2020 = monthlyNEW.drop(columns=['2019'])
