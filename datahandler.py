@@ -29,7 +29,7 @@ def writeData(r, filename='data.csv'):
 
 def writeCSV(r, filename='data.csv'):
     filename = modifyFilename(filename)
-    r.to_csv(filename)
+    r.to_csv(filename, index=False)
     print('CSV ' + filename + ' Geschrieben.')
 
 
@@ -206,7 +206,7 @@ def modifyMOFISData(filename=modifyFilename('mofis_raw_clean.csv'), destfilename
     countPivot['Erstinverkehrsetzung_Monat'] = countPivot['Erstinverkehrsetzung_Monat'].apply(lambda x: x.zfill(2))
     countPivot['date'] = countPivot[['Erstinverkehrsetzung_Jahr', 'Erstinverkehrsetzung_Monat']].agg('-'.join, axis=1)
     countPivot = countPivot.drop(columns=['Erstinverkehrsetzung_Jahr', 'Erstinverkehrsetzung_Monat'])
-    countPivot = countPivot.set_index('date')
+    # countPivot = countPivot.set_index('date')
     writeCSV(countPivot, destfilename)
     print('Personenwagen nach Monaten gezählt - MOFIS Tabelle gespeichert')
 
@@ -217,6 +217,7 @@ def aggregate2020Data():
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBASEa.append(mofisBASEb, ignore_index=True)
     aggregated = aggregated.append(monthlyDataToAdd, ignore_index=True)
+    aggregated.encode('utf-8')
     aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), index=False)
     print('Tabelle 2018-2020 geschrieben')
 
@@ -225,7 +226,7 @@ def aggregateNewData():
     mofisBase = pd.read_csv('data/mofis_BASE2020.csv', index_col=False)
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBase.append(monthlyDataToAdd, ignore_index=True)
-    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv', index=False))
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), encoding='utf8', index=False)
 
 def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
     monthlyNEW2020 = monthlyNEW.drop(columns=['2019'])

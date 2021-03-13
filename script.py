@@ -1,17 +1,8 @@
-import numpy
+
 import pandas as pd
-import requests
-import json
-import mpld3
-import matplotlib.pyplot as plt, mpld3
-import numpy as np
-import csv
-import plotly
-import calendar
 import datahandler as dh
 import datakicker as dk
 import chartadmin as ca
-import ftpupload as fu
 
 
 def gatherData():
@@ -57,12 +48,10 @@ def drawBFS():
 def gatherAutoSchweiz():
     dh.requestdataAS()
 
-
 def processDataAS():
     asData = dh.importDataAS()
     global teslaNumbers
     teslaNumbers = dh.getTeslaNumbers(asData, monthlydata.get('data_2019'))
-
 
 def drawAS():
     dh.drawTeslaStats(teslaNumbers)
@@ -72,15 +61,15 @@ def drawAS():
 
 
 def kickdatawrapper():
+    global chartIndex
+    chartIndex = ca.chartAdmin()
+    global mofis_latestupdate
+    mofis_latestupdate = open('latestupdateMOFIS.txt', 'r').read()
     dk.dataWrapperConnect()
     for i, row in chartIndex.iterrows():
         print(str(i) + ' und ' + str(row));
-        dk.updatedwchart(row['id'], dh.modifyFilename(row['filename']))
+        dk.updatedwchart(row['id'], filename=dh.modifyFilename(row['filename']), timeframe=mofis_latestupdate)
         print('Chart ' + row['title'] + 'mit Daten beschickt')
-
-
-global chartIndex
-chartIndex = ca.chartAdmin()
 
 
 
