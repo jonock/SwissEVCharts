@@ -85,7 +85,9 @@ def processMOFISData():
     dh.getMOFISData()
     dh.importMOFISdata()
     dh.modifyMOFISData()
-    dh.aggregateNewData()
+    monthlydata = dh.aggregateNewData()
+    dh.modifyMonthlyData2021(monthlydata)
+    dh.modifyYearlyData2021(monthlydata)
 
 
 # gatherData()

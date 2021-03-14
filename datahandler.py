@@ -29,7 +29,7 @@ def writeData(r, filename='data.csv'):
 
 def writeCSV(r, filename='data.csv'):
     filename = modifyFilename(filename)
-    r.to_csv(filename, index=False)
+    r.to_csv(filename, index=False, encoding='utf-8')
     print('CSV ' + filename + ' Geschrieben.')
 
 
@@ -180,15 +180,15 @@ def importMOFISdata(filename=modifyFilename('mofisData.xlsb'), destfilename='mof
     if filename[-3:] == 'xls':
         data = pd.read_excel(filename, sheet_name='Rohdaten')
     data = data.drop(data.columns[0], axis=1)
-    data.iloc[5] = data.iloc[5].str.replace('\n', '').str.replace('-', '')
-    data.columns = data.iloc[5]
-    data = data.iloc[6:]
+    data.iloc[4] = data.iloc[4].str.replace('\n', '').str.replace('-', '')
+    data.columns = data.iloc[4]
+    data = data.iloc[5:]
     data.to_csv(modifyFilename(destfilename))
     print('rohdaten excel file importiert, csv abgespeichert')
     explainations = pd.read_excel(filename, engine='pyxlsb', sheet_name='Erläuterungen')
     if filename == modifyFilename('mofisData.xlsb'):
         global mofis_latestupdate
-        mofis_latestupdate = explainations.iat[11, 4]
+        mofis_latestupdate = explainations.iat[13, 4]
         print('MOFIS Stand: ' + mofis_latestupdate)
         with open('latestupdateMOFIS.txt', 'w') as text_file:
             text_file.write(mofis_latestupdate)
@@ -217,16 +217,40 @@ def aggregate2020Data():
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBASEa.append(mofisBASEb, ignore_index=True)
     aggregated = aggregated.append(monthlyDataToAdd, ignore_index=True)
+    aggregated.fillna(0, inplace=True)
     aggregated.encode('utf-8')
     aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), index=False)
     print('Tabelle 2018-2020 geschrieben')
-
 
 def aggregateNewData():
     mofisBase = pd.read_csv('data/mofis_BASE2020.csv', index_col=False)
     monthlyDataToAdd = pd.read_csv(modifyFilename('mofis_monthly_thisyear.csv'), index_col=False)
     aggregated = mofisBase.append(monthlyDataToAdd, ignore_index=True)
-    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), encoding='utf8', index=False)
+    aggregated.fillna(0, inplace=True)
+    aggregated.to_csv(modifyFilename('mofisMonthlyComplete.csv'), encoding='utf-8', index=False)
+    return aggregated
+
+def modifyMonthlyData2021(data):
+    # Additional Outputs
+    # - Nur Elektrisch
+    monthlyElectric = data.filter(['date', 'Elektrisch'])
+    writeCSV(monthlyElectric, 'monthlyElectric.csv')
+
+    # - Nur Nicht-elektrisch
+    monthlyNonElectric = data.drop(
+        ['Elektrisch'], axis=1)
+    monthlyNonElectric['Nicht-Elektrisch'] = monthlyNonElectric.sum(axis=1)
+    monthlyNonElectric = monthlyNonElectric.filter(['date', 'Nicht-Elektrisch'])
+    writeCSV(monthlyNonElectric, 'monthlyNonElectric.csv')
+
+    # - Elektrisch und Nicht-Elektrisch
+    monthlyElNonEl = pd.concat([monthlyElectric, monthlyNonElectric['Nicht-Elektrisch']], axis=1)
+    print(monthlyElNonEl)
+    writeCSV(monthlyElNonEl, 'monthlyElNonEl.csv')
+    print('Monatsdaten Abgeschlossen')
+
+def modifyYearlyData2021(dataNew):
+
 
 def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
     monthlyNEW2020 = monthlyNEW.drop(columns=['2019'])
@@ -311,9 +335,9 @@ def modifyMonthlyData(data):
     return ret
 
 
-def completeYearly(monthlydata, yearly):
-    sum2020 = monthlydata.loc['2020-01': '2020-12']
-    sum2020 = sum2020.sum(axis=0)
+def completeYearly(monthlydata):
+    sumNew = monthlydata.loc['2020-01': '2020-12']
+    sumNew = sumNew.sum(axis=0)
     yearly['2020'] = sum2020
     writeCSV(yearly, 'YearlyData_app.csv')
     yearlyelectric = yearly.loc['Elektrisch']
