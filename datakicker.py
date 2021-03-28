@@ -73,9 +73,9 @@ def updatedwchart(id, filename, timeframe='0'):
     url = f'https://api.datawrapper.de/v3/charts/{id}/data'
     headers = {
         'authorization': f'Bearer {dwToken}',
-        'content-type': 'text/csv'
+        'content-type': 'text/csv; charset=utf8'
     }
-    dataupdate = ((requests.put(url=url, headers=headers, data=data)))
+    dataupdate = (requests.put(url=url, headers=headers, data=data))
 
     # Beschreibung Updaten
     url = f'https://api.datawrapper.de/v3/charts/{id}'
@@ -83,7 +83,7 @@ def updatedwchart(id, filename, timeframe='0'):
         'authorization': f'Bearer {dwToken}'
     }
     if timeframe != '0':
-        message = 'Zeitraum der Daten: ' + timeframe
+        message = 'Neuste Daten: ' + timeframe
     else:
         message = ''
     payload = {
