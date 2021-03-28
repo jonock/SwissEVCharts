@@ -68,18 +68,11 @@ def kickdatawrapper():
     dk.dataWrapperConnect()
     for i, row in chartIndex.iterrows():
         print(str(i) + ' und ' + str(row));
-        dk.updatedwchart(row['id'], filename=dh.modifyFilename(row['filename']), timeframe=mofis_latestupdate)
-        print('Chart ' + row['title'] + 'mit Daten beschickt')
-
-
-
-def csvcorrections():
-    # hardcoded stuff for nasty mistakes due to improper coding...
-    data = pd.read_csv('data/dwcharts/t--N8_data.csv', header=0,
-                       names=['MonatID', 'Monat', 'Model 3', 'Model S', 'Model X'])
-    data = data.drop('MonatID', axis=1)
-    data.to_csv('data/dwcharts/t--N8_data.csv', index=False)
-
+        try:
+            dk.updatedwchart(row['id'], filename=dh.modifyFilename(row['filename']), timeframe=mofis_latestupdate)
+            print('Chart ' + row['title'] + ' mit Daten beschickt')
+        except:
+            print('Chart ' + row['title'] + ' hat nicht funktioniert')
 
 def processMOFISData():
     dh.getMOFISData()
@@ -98,7 +91,7 @@ def processMOFISData():
 # drawAS()
 processMOFISData()
 kickdatawrapper()
-ca.chartIndexHousekeeping(chartIndex)
+#ca.chartIndexHousekeeping(chartIndex)
 # csvcorrections()
 # fu.ftpupload('data/dwcharts/')
 # print('Erfolg.')

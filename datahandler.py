@@ -250,6 +250,26 @@ def modifyMonthlyData2021(data):
     print('Monatsdaten Abgeschlossen')
 
 def modifyYearlyData2021(dataNew):
+    yearly= pd.DataFrame()
+    years = [2018,2019,2020,2021]
+    for i in years:
+        yearly[i] = dataNew[dataNew['date'].str.startswith(str(i))].sum()
+    yearly.drop(['date'], inplace=True)
+    yearly.to_csv(modifyFilename('mofisYearlyComplete.csv'), encoding='utf-8')
+    yearlyBase = pd.read_csv('data/yearlyBASE.csv', index_col=0)
+    yearlyElectric = yearlyBase.loc['Elektrisch']
+    yearlyElectric.loc[2021] = yearly.loc['Elektrisch'][2021]
+    yearlyElectric.drop(labels=['2005','2006','2007','2008', '2009', '2010'], inplace=True)
+    yearlyElectric.index.name='date'
+    yearlyElectric.to_csv(modifyFilename('yearlyElectric.csv'), encoding='utf-8')
+    yearlyNonElBase = yearlyAddNonElectric(yearlyBase)
+    yearlyEl = yearly.loc['Elektrisch']
+    yearlyNonEl = yearlyAddNonElectric(yearly)
+    yearlyNonElBase= yearlyNonElBase.update(yearlyNonEl)
+    yearlyElNonEl = pd.concat([yearlyEl, yearlyNonEl], axis=1)
+    yearlyElNonEl.to_csv(modifyFilename('mofisYearlyElNonEl.csv'), encoding='utf-8')
+    return yearly
+
 
 
 def modifyMonthlyData2020(monthlyNEW, monthlyOLD):
